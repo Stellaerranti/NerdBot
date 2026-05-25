@@ -10,6 +10,11 @@ Dima_Score = 24
 
 answered_questions = [3,45,13]
 
+def chart(update: telebot.Update, context: telebot.CallbackContext) -> None:
+    """Send a message with the arguments passed by the user, when the command /chart is issued."""
+    input_mex = update.message.text
+    input_args = input_mex.split('/chart ')[1]
+    update.message.reply_text(input_args)
     
 @bot.message_handler(commands=['question'])
 def NewQuestion(message):
