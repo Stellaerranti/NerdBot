@@ -10,12 +10,7 @@ Dima_Score = 24
 
 answered_questions = [3,45,13]
 
-def chart(update: telebot.Update, context: telebot.CallbackContext) -> None:
-    """Send a message with the arguments passed by the user, when the command /chart is issued."""
-    input_mex = update.message.text
-    input_args = input_mex.split('/chart ')[1]
-    update.message.reply_text(input_args)
-    
+
 @bot.message_handler(commands=['question'])
 def NewQuestion(message):
     send_new_question(message.chat.id)
@@ -34,22 +29,23 @@ def send_new_question(chat_id):
     answered_questions.append(new_question)
 
     bot.send_message(chat_id, f"Следующий вопрос для нас: {new_question}")
-    
+
 @bot.message_handler(commands=['deletequestion'])
-def ask_delete_question(message):
-    bot.send_message(message.chat.id, "Напиши номер вопроса, который нужно удалить.")
-    bot.register_next_step_handler(message, delete_question)
+def delete_question_command(message):
+    parts = message.text.split()
 
+    if len(parts) < 2:
+        bot.send_message(message.chat.id, "Напиши номер вопроса: /deletequestion номер")
+        return
 
-def delete_question(message):
     try:
-        question_to_delete = int(message.text)
+        question_to_delete = int(parts[1])
     except ValueError:
-        bot.send_message(message.chat.id, "Нужно ввести число.")
+        bot.send_message(message.chat.id, "Номер вопроса должен быть числом.")
         return
 
     if question_to_delete not in answered_questions:
-        bot.send_message(message.chat.id, f"Мы не отвечали на вопрос {question_to_delete}")
+        bot.send_message(message.chat.id, f"Мы не отвечали на вопрос {question_to_delete}.")
         return
 
     answered_questions.remove(question_to_delete)
@@ -58,10 +54,16 @@ def delete_question(message):
         message.chat.id,
         f"Вопрос {question_to_delete} вычеркнут из списка. Он снова нас ждёт."
     )
-    
+
+@bot.message_handler(commands=['addquestion'])
 def add_question(message):
+    parts = message.text.split()
+    
+    if len(parts) < 2:
+        bot.send_message(message.chat.id, "Напиши номер вопроса: /addquestion номер")
+        return
     try:
-        question_to_add = int(message.text)
+        question_to_add = int(parts[1])
     except ValueError:
         bot.send_message(message.chat.id, "Нужно ввести число.")
         return
@@ -129,7 +131,7 @@ def callback_worker(call):
     elif call.data == "addquestion":
         bot.send_message(
             call.message.chat.id,
-            "Напиши номер вопроса, который нужно добавить в список отвеченных."
+            "Напиши номер вопроса, который нужно добавить в список отвеченных /addquestion номер"
         )
         bot.register_next_step_handler(call.message, add_question)
 
@@ -138,9 +140,9 @@ def callback_worker(call):
 
         bot.send_message(
             call.message.chat.id,
-            f"Мы ответили на вопросы: {number_string}\nНапиши номер вопроса, который нужно удалить."
+            f"Мы ответили на вопросы: {number_string}\nНапиши номер вопроса, который нужно удалить после /deletequestion"
         )
-        bot.register_next_step_handler(call.message, delete_question)
+        bot.register_next_step_handler(call.message, delete_question_command)
 
     elif call.data == 'iraisnerd':
         ira_nerd(call.message.chat.id)
@@ -149,7 +151,11 @@ def callback_worker(call):
         dima_nerd(call.message.chat.id)
 
     elif call.data == 'changecount':
-        start_nerdness_update(call.message)
+        #start_nerdness_update(call.message)
+        bot.send_message(
+            call.message.chat.id,
+            "Что бы изменить счёт набери \n/changeiranerdness счёт Иры \n/changedimanerdness счёт Димы"
+        )
         
 @bot.message_handler(commands=['info'])
 def info_command(message):
@@ -195,6 +201,49 @@ def start_nerdness_update(message):
     bot.send_message(message.chat.id, "Введи счёт Иры:")
     bot.register_next_step_handler(message, nerdness_helper)
 
+@bot.message_handler(commands=['changeiranerdness'])
+def change_ira_nerdness(message):
+    global Ira_Score
+    
+    parts = message.text.split()
+    
+    if len(parts) < 2:
+        bot.send_message(message.chat.id, "Напиши счёт: /changeiranerdness номер")
+        return
+    try:
+        new_score = int(parts[1])
+    except ValueError:
+        bot.send_message(message.chat.id, "Нужно ввести число.")
+        return
+    
+    Ira_Score = new_score
+    
+    bot.send_message(
+        message.chat.id,
+        f"Новый счёт Иры {new_score} "
+    )
+   
+@bot.message_handler(commands=['changedimanerdness'])
+def change_dima_nerdness(message):
+    global Dima_Score
+    
+    parts = message.text.split()
+    
+    if len(parts) < 2:
+        bot.send_message(message.chat.id, "Напиши счёт: /changeiranerdness номер")
+        return
+    try:
+        new_score = int(parts[1])
+    except ValueError:
+        bot.send_message(message.chat.id, "Нужно ввести число.")
+        return
+    
+    Dima_Score = new_score
+    
+    bot.send_message(
+        message.chat.id,
+        f"Новый счёт Димы {new_score} "
+    )    
 
 @bot.message_handler(commands=['nerdness'])
 def manage_nerdness(message):
