@@ -1,7 +1,15 @@
 import telebot
+import os
 import numpy as np
 
-bot = telebot.TeleBot('8938684986:AAHIgIGzHaImieFfzrRC5-_TY5-YPqb9Y7c')
+
+BOT_ID = os.getenv('BOT_ID')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+
+if not BOT_TOKEN:
+    print("Токен не найден!")
+
+bot = telebot.TeleBot(BOT_TOKEN)
 
 name = ''
 surname = ''
